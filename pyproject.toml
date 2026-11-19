@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "climrisk"
+version = "0.1.0"
+description = "Physical climate risk indicators for a portfolio of sites, built on CLIMADA."
+readme = "README.md"
+requires-python = ">=3.12"
+# Dependencies are managed by conda (environment.yml + conda-lock.yml), not here:
+# see docs/decisions/001-conda-environment.md. Install with `pip install -e . --no-deps`.
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
