@@ -1,0 +1,18 @@
+# Single source of truth for dependencies (see docs/decisions/001-conda-environment.md).
+# Exact versions are pinned in conda-lock.yml; regenerate it after any change here.
+name: climrisk
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - climada=6.2.0
+  - fastapi>=0.115
+  - uvicorn>=0.32
+  - pydantic>=2.9
+  - pydantic-settings>=2.6
+  - scipy>=1.14
+  # dev and test tools, kept in the same environment for simplicity
+  - pytest>=8.3
+  - httpx>=0.27
+  - ruff>=0.8
+  - pip
