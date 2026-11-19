@@ -1,0 +1,25 @@
+# Private, never versioned
+notes/
+CLAUDE.local.md
+.env
+
+# Data (only small samples are versioned)
+data/*
+!data/sample/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+
+# Notebooks and editors
+.ipynb_checkpoints/
+.vscode/
+.idea/
+.DS_Store
