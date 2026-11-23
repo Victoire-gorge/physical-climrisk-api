@@ -38,6 +38,8 @@ for real decisions.
 ## Commands
 - Environment: `micromamba create -n climrisk -f conda-lock.yml` then `pip install -e . --no-deps`
 - Update lock after editing `environment.yml`: `conda-lock lock -f environment.yml -p osx-arm64 -p linux-64`
+- Prepare the zone hazard file (once): `python -m climrisk.prepare`
+- Serve the API: `uvicorn --factory climrisk.api.app:create_app` (docs at `/docs`)
 - Tests: `pytest`
 - Lint: `ruff check . && ruff format --check .`
 
