@@ -17,8 +17,10 @@ Measured on the Gironde river flood set:
 ## Options
 For reading a PML at a return period T:
 1. **CLIMADA step function** (`method="stepfunction"`), on each site and on the portfolio: the
-   loss exceeded with frequency 1/T, read on the empirical exceedance curve. With equally likely
-   years, the 100-year loss is the 9th largest yearly loss out of 920 (920 / 100 = 9.2).
+   loss exceeded with frequency 1/T, read on the empirical exceedance curve. With N equally
+   likely years, the T-year loss is the yearly loss of rank floor(N / T) + 1, counted from the
+   largest: the smallest loss that at most N / T years exceed. The 100-year loss is the 10th
+   largest out of 920 (920 / 100 = 9.2, so 9 years do worse), measured on distinct losses.
 2. **CLIMADA `interpolate`, NaN replaced by 0**: wrong beyond the observed range, where NaN means
    unknown, not zero.
 3. **Our own empirical quantile**: simple, but reimplements CLIMADA.
@@ -39,6 +41,11 @@ Option 1, with return periods 10, 50, 100 and 250 years (`RETURN_PERIODS_YEARS`)
 - A zero in the response means no loss at that return period, never an unknown value.
 - The PML is a step function of T: it changes only at observed yearly losses, so close return
   periods can share the same value.
+- When N / T is a whole number (920 / 10 = 92), float rounding in the cumulated frequencies
+  picks rank N / T or N / T + 1. Both are valid empirical quantiles; tests avoid that case.
+- When no evaluated site is ever flooded, the impact matrix holds no non-zero value and
+  `local_exceedance_impact` raises, taking it for a matrix never computed (it tests the sparse
+  `size`, which counts non-zero values). `risk_metrics` returns zero metrics in that case.
 - The 920 years are 46 models simulating the same 20 years, not 920 independent years: the real
   uncertainty is larger than the count suggests. No confidence interval is reported yet.
 - Sites flooded in different years make the portfolio PML smaller than the sum of site PMLs.
