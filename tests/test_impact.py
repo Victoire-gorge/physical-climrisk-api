@@ -100,6 +100,17 @@ def test_portfolio_pml_uses_yearly_total_not_sum_of_site_pml(yearly_hazard):
     assert metrics.sites["pml_10"].sum() == pytest.approx(700 + 270)
 
 
+def test_portfolio_never_flooded_gives_zero_metrics_not_an_error(yearly_hazard):
+    # Only site b, on the never flooded centroid: the impact matrix holds no non-zero value,
+    # which CLIMADA's local_exceedance_impact mistakes for a matrix that was never computed.
+    portfolio = _portfolio().iloc[[1]]
+    impact = compute_impact(portfolio_to_exposures(portfolio, np.array([1])), yearly_hazard)
+    metrics = risk_metrics(impact, portfolio["site_id"], (2, 5, 10))
+    assert metrics.sites[["aal", "pml_2", "pml_5", "pml_10"]].to_numpy().tolist() == [[0.0] * 4]
+    assert metrics.portfolio_aal == 0.0
+    assert metrics.portfolio_pml == {2: 0.0, 5: 0.0, 10: 0.0}
+
+
 def test_compute_impact_keeps_the_given_centroids(yearly_hazard):
     portfolio = _portfolio().iloc[[0]]
     # Site a lies on centroid 0, but is forced onto centroid 1 (never flooded).

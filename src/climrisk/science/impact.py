@@ -80,8 +80,16 @@ def risk_metrics(
         site_ids: identifier of each site, in exposure order.
         return_periods: return periods in years, already checked with ``check_return_periods``.
     """
-    local, _, _ = impact.local_exceedance_impact(return_periods=return_periods, method=PML_METHOD)
     sites = pd.DataFrame({"site_id": list(site_ids), "aal": impact.eai_exp})
+    # No loss in any event: every PML is 0. CLIMADA cannot tell this sparse matrix without
+    # non-zero values from one never computed, and local_exceedance_impact would raise.
+    if impact.imp_mat.nnz == 0:
+        for rp in return_periods:
+            sites[f"pml_{rp}"] = 0.0
+        portfolio_pml = {rp: 0.0 for rp in return_periods}
+        return RiskMetrics(sites=sites, portfolio_aal=0.0, portfolio_pml=portfolio_pml)
+
+    local, _, _ = impact.local_exceedance_impact(return_periods=return_periods, method=PML_METHOD)
     for rp in return_periods:
         sites[f"pml_{rp}"] = local[str(rp)].to_numpy()
 
