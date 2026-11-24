@@ -1,0 +1,14 @@
+{
+  "sites": [
+    {"site_id": "bordeaux_centre_office", "lat": 44.8378, "lon": -0.5792, "value": 2000000, "asset_type": "office"},
+    {"site_id": "merignac_logistics_hub", "lat": 44.8286, "lon": -0.7156, "value": 8000000, "asset_type": "logistics"},
+    {"site_id": "begles_riverside_plant", "lat": 44.8070, "lon": -0.5480, "value": 5000000, "asset_type": "industrial"},
+    {"site_id": "libourne_warehouse", "lat": 44.9153, "lon": -0.2436, "value": 3000000, "asset_type": "logistics"},
+    {"site_id": "langon_plant", "lat": 44.5531, "lon": -0.2494, "value": 4000000, "asset_type": "industrial"},
+    {"site_id": "saint_emilion_estate_buildings", "lat": 44.8930, "lon": -0.1550, "value": 1200000, "asset_type": "industrial"},
+    {"site_id": "saint_emilion_estate_vines", "lat": 44.8930, "lon": -0.1550, "value": 800000, "asset_type": "cropland"},
+    {"site_id": "blaye_office", "lat": 45.1275, "lon": -0.6622, "value": 1000000, "asset_type": "office"},
+    {"site_id": "offshore_platform", "lat": 45.3000, "lon": -1.2900, "value": 10000000, "asset_type": "industrial"},
+    {"site_id": "marseille_office", "lat": 43.2965, "lon": 5.3698, "value": 1000000, "asset_type": "office"}
+  ]
+}

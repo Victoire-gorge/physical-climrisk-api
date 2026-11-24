@@ -6,8 +6,14 @@ from climada.hazard import Centroids, Hazard
 from fastapi.testclient import TestClient
 from scipy import sparse
 
-from climrisk.api.app import create_app
-from climrisk.api.schemas import MAX_SITES, LossMetrics, MatchedCentroid, ReturnPeriodLoss
+from climrisk.api.app import DEMO_PORTFOLIO, create_app
+from climrisk.api.schemas import (
+    MAX_SITES,
+    LossMetrics,
+    MatchedCentroid,
+    Portfolio,
+    ReturnPeriodLoss,
+)
 from climrisk.config import Settings
 from climrisk.science.impact import RETURN_PERIODS_YEARS
 from climrisk.science.vulnerability import AssetType
@@ -238,3 +244,20 @@ def test_distances_in_responses_have_at_most_metre_precision(client):
     distance = body["sites"][0]["matched_centroid"]["distance_km"]
     assert distance == round(distance, 3)
     assert distance == pytest.approx(55.6, abs=0.1)  # one cell north-south, 0.5 degree
+
+
+# --- demo portfolio --------------------------------------------------------------------------
+
+
+def test_demo_portfolio_is_a_valid_request_covering_every_asset_type():
+    portfolio = Portfolio.model_validate(DEMO_PORTFOLIO)
+    site_ids = [site.site_id for site in portfolio.sites]
+    assert len(site_ids) == len(set(site_ids))
+    assert {site.asset_type for site in portfolio.sites} == {t.value for t in AssetType}
+
+
+@pytest.mark.parametrize("path", ["/v1/validate", "/v1/analyze"])
+def test_docs_are_prefilled_with_the_demo_portfolio(client, path):
+    operation = client.get("/openapi.json").json()["paths"][path]["post"]
+    examples = operation["requestBody"]["content"]["application/json"]["examples"]
+    assert examples["demo"]["value"] == DEMO_PORTFOLIO

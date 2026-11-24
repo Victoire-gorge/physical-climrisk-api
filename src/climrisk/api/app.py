@@ -3,13 +3,15 @@
 Run with ``uvicorn --factory climrisk.api.app:create_app``. See docs/decisions/007-api-contract.md.
 """
 
+import json
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import NamedTuple
+from importlib.resources import files
+from typing import Annotated, NamedTuple
 
 import pandas as pd
 from climada.hazard import Hazard
-from fastapi import APIRouter, FastAPI, HTTPException, Request
+from fastapi import APIRouter, Body, FastAPI, HTTPException, Request
 
 from climrisk import __version__
 from climrisk.api.schemas import (
@@ -71,6 +73,23 @@ def load_service(settings: Settings) -> Service:
     return Service(settings=settings, hazard=hazard, grid=grid)
 
 
+# Demo portfolio shipped with the package: prefills the interactive docs (/docs) and serves as
+# the README example. A small package file, read once at import, never in a request.
+DEMO_PORTFOLIO = json.loads(files("climrisk.api").joinpath("demo_portfolio.json").read_text())
+
+PortfolioBody = Annotated[
+    Portfolio,
+    Body(
+        openapi_examples={
+            "demo": {
+                "summary": "Demo portfolio in Gironde",
+                "description": "Ten sites covering every status: valid, warning, excluded.",
+                "value": DEMO_PORTFOLIO,
+            }
+        }
+    ),
+]
+
 router = APIRouter()
 
 
@@ -105,7 +124,7 @@ def hazards(request: Request) -> list[HazardInfo]:
 
 
 @router.post("/v1/validate")
-def validate(portfolio: Portfolio, request: Request) -> ValidationResponse:
+def validate(portfolio: PortfolioBody, request: Request) -> ValidationResponse:
     """Check every site and report its status, issues and matched hazard centroid."""
     service: Service = request.app.state.service
     report = validate_portfolio(_to_frame(portfolio), service.hazard, service.grid)
@@ -113,7 +132,7 @@ def validate(portfolio: Portfolio, request: Request) -> ValidationResponse:
 
 
 @router.post("/v1/analyze")
-def analyze(portfolio: Portfolio, request: Request) -> AnalysisResponse:
+def analyze(portfolio: PortfolioBody, request: Request) -> AnalysisResponse:
     """Validate the sites, then compute AAL and PML of every site that is not excluded.
 
     Answers 422, with the validation report, when every site is excluded.
