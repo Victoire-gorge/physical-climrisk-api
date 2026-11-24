@@ -16,7 +16,21 @@ python -m climrisk.prepare                       # download and crop the zone ha
 uvicorn --factory climrisk.api.app:create_app    # interactive docs at http://127.0.0.1:8000/docs
 ```
 
-Endpoints: `GET /health`, `GET /v1/hazards`, `POST /v1/validate`, `POST /v1/analyze`.
+Endpoints: `GET /health`, `GET /v1/hazards`, `GET /v1/vulnerability-curves`, `POST /v1/validate`,
+`POST /v1/analyze`.
+
+## Web interface
+
+An educational interface shows each site on a map with the hazard cell it is matched to, explains
+the insurance metrics (AAL, PML, return periods, diversification) and shows the requests it sends
+to the API. It is a separate HTTP client with its own small environment (no CLIMADA):
+
+```bash
+micromamba create -n climrisk-ui -f ui/conda-lock.yml
+micromamba run -n climrisk-ui streamlit run ui/app.py   # with the API running
+```
+
+Set `CLIMRISK_API_URL` if the API is not at `http://127.0.0.1:8000`.
 See `docs/decisions/` for the reasoning behind each choice.
 
 ## Demo portfolio

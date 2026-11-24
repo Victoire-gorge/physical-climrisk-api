@@ -7,6 +7,7 @@ for real decisions.
 ## Architecture
 - `src/climrisk/science/`: CLIMADA logic (hazard, exposure, vulnerability, impact). No FastAPI or HTTP imports.
 - `src/climrisk/api/`: FastAPI routes, Pydantic schemas, error handling.
+- `ui/`: Streamlit interface, an HTTP client of the API. Never imports `climrisk`.
 - `src/climrisk/config.py`: settings from environment variables (pydantic-settings).
 - Validation rules live in one place and are reused by every endpoint.
 - The geographic zone comes from configuration. Out-of-zone checks use the extent of the loaded hazard, never coordinates copied into code.
@@ -40,6 +41,8 @@ for real decisions.
 - Update lock after editing `environment.yml`: `conda-lock lock -f environment.yml -p osx-arm64 -p linux-64`
 - Prepare the zone hazard file (once): `python -m climrisk.prepare`
 - Serve the API: `uvicorn --factory climrisk.api.app:create_app` (docs at `/docs`)
+- Web interface (separate env `climrisk-ui`, created from `ui/conda-lock.yml`): `streamlit run ui/app.py`
+- Update the interface lock after editing `ui/environment.yml`: `conda-lock lock -f ui/environment.yml -p osx-arm64 -p linux-64 --lockfile ui/conda-lock.yml`
 - Tests: `pytest`
 - Lint: `ruff check . && ruff format --check .`
 

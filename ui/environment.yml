@@ -1,0 +1,13 @@
+# Environment of the web interface only (see docs/decisions/008-web-interface.md).
+# The interface is an HTTP client of the API: it needs neither CLIMADA nor GDAL.
+# Exact versions are pinned in ui/conda-lock.yml; regenerate it after any change here.
+name: climrisk-ui
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - streamlit>=1.40
+  - pydeck>=0.9
+  - requests>=2.32
+  - pandas>=2.2
+  - numpy>=2.0

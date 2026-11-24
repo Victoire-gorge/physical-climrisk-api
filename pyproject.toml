@@ -27,4 +27,5 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]  # lets tests import the ui/ folder, which is not part of the package
 addopts = "-ra"
