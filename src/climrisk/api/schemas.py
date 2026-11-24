@@ -5,11 +5,28 @@ These models check only the shape of a request (fields, types, portfolio size). 
 are reported site by site. See docs/decisions/006 and 007.
 """
 
-from pydantic import BaseModel, Field
+from typing import Annotated
+
+from pydantic import BaseModel, Field, PlainSerializer
 
 from climrisk.science.exposure import VALUE_UNIT
 from climrisk.science.validation import Issue, SiteStatus
 from climrisk.science.vulnerability import AssetType
+
+# Responses are rounded when serialised; models and computations keep full precision. Raw values
+# carry float noise (45.49999999999494 for 45.5) that means nothing and hurts readability.
+DEGREE_DECIMALS = 6  # 1e-6 degree is about 0.1 m, far below the 4.6 x 3.3 km hazard cell
+KM_DECIMALS = 3  # one metre
+VALUE_DECIMALS = 0  # whole value unit (euro): losses are estimates on a 4.6 km grid
+
+
+def _rounded(decimals: int) -> PlainSerializer:
+    return PlainSerializer(lambda value: round(value, decimals), return_type=float)
+
+
+Degrees = Annotated[float, _rounded(DEGREE_DECIMALS)]
+Kilometres = Annotated[float, _rounded(KM_DECIMALS)]
+Money = Annotated[float, _rounded(VALUE_DECIMALS)]
 
 # Measured on the Gironde hazard (see docs/decisions/007): 10,000 random sites are analysed in
 # 0.56 s with a 3.5 MB response (1.2 MB request) and a 490 MB process peak. That stays under the
@@ -39,9 +56,9 @@ class Portfolio(BaseModel):
 class MatchedCentroid(BaseModel):
     """Hazard centroid used for a site, and the distance between them."""
 
-    lat: float
-    lon: float
-    distance_km: float
+    lat: Degrees
+    lon: Degrees
+    distance_km: Kilometres
 
 
 class SiteValidation(BaseModel):
@@ -66,13 +83,13 @@ class ReturnPeriodLoss(BaseModel):
     """Probable maximum loss at one return period."""
 
     return_period_years: int
-    loss: float
+    loss: Money
 
 
 class LossMetrics(BaseModel):
     """Average annual loss and probable maximum losses, in the value unit."""
 
-    aal: float
+    aal: Money
     pml: list[ReturnPeriodLoss]
 
 
@@ -94,17 +111,17 @@ class AnalysisResponse(BaseModel):
 class Extent(BaseModel):
     """Area covered by the hazard cells, in degrees (EPSG:4326)."""
 
-    lon_min: float
-    lat_min: float
-    lon_max: float
-    lat_max: float
+    lon_min: Degrees
+    lat_min: Degrees
+    lon_max: Degrees
+    lat_max: Degrees
 
 
 class GridStep(BaseModel):
     """Size of a hazard grid cell, in degrees."""
 
-    lat_step_deg: float
-    lon_step_deg: float
+    lat_step_deg: Degrees
+    lon_step_deg: Degrees
 
 
 class HazardInfo(BaseModel):

@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from scipy import sparse
 
 from climrisk.api.app import create_app
-from climrisk.api.schemas import MAX_SITES
+from climrisk.api.schemas import MAX_SITES, LossMetrics, MatchedCentroid, ReturnPeriodLoss
 from climrisk.config import Settings
 from climrisk.science.impact import RETURN_PERIODS_YEARS
 from climrisk.science.vulnerability import AssetType
@@ -150,10 +150,11 @@ def test_empty_or_too_large_portfolio_is_rejected(client, n_sites):
 
 
 def test_analyze_returns_hand_checked_metrics(client):
-    body = client.post("/v1/analyze", json={"sites": [_site("flooded", ON_FLOODED)]}).json()
+    site = _site("flooded", ON_FLOODED, value=1000.0)
+    body = client.post("/v1/analyze", json={"sites": [site]}).json()
     metrics = body["sites"][0]["metrics"]
-    # Losses: 270 in year 0, 700 in year 1, each with frequency 1/260.
-    assert metrics["aal"] == pytest.approx((270 + 700) / N_YEARS)
+    # Losses: 270 in year 0, 700 in year 1, each with frequency 1/260; AAL 3.73, rounded to 4.
+    assert metrics["aal"] == round((270 + 700) / N_YEARS)
     pml = {p["return_period_years"]: p["loss"] for p in metrics["pml"]}
     # The T-year loss is the loss of rank floor(260 / T) + 1. 250 years: rank 2 (270).
     # 100 years: rank 3, i.e. 0, since a loss occurs only once every 130 years on average.
@@ -206,3 +207,34 @@ def test_validate_and_analyze_agree_on_every_site(client):
     validated = client.post("/v1/validate", json={"sites": sites}).json()["sites"]
     analyzed = client.post("/v1/analyze", json={"sites": sites}).json()["sites"]
     assert [{k: s[k] for k in fields} for s in analyzed] == validated
+
+
+# --- rounding of responses -------------------------------------------------------------------
+
+
+def test_response_rounds_float_noise_away():
+    # Raw values seen in a real response: float noise from the grid and the loss computation.
+    centroid = MatchedCentroid(
+        lat=45.49999999999494, lon=-0.041666666707584454, distance_km=0.002596164728083786
+    )
+    assert centroid.model_dump(mode="json") == {"lat": 45.5, "lon": -0.041667, "distance_km": 0.003}
+    metrics = LossMetrics(
+        aal=10345.467061135621,
+        pml=[ReturnPeriodLoss(return_period_years=100, loss=286900.7419957743)],
+    )
+    assert metrics.model_dump(mode="json") == {
+        "aal": 10345.0,
+        "pml": [{"return_period_years": 100, "loss": 286901.0}],
+    }
+
+
+def test_rounding_keeps_full_precision_inside_the_model():
+    # Only the response is rounded: the value held by the model, used in code, is unchanged.
+    assert MatchedCentroid(lat=45.4999999, lon=0.0, distance_km=1.23456).distance_km == 1.23456
+
+
+def test_distances_in_responses_have_at_most_metre_precision(client):
+    body = client.post("/v1/validate", json={"sites": [_site("m", IN_MISSING_CELL)]}).json()
+    distance = body["sites"][0]["matched_centroid"]["distance_km"]
+    assert distance == round(distance, 3)
+    assert distance == pytest.approx(55.6, abs=0.1)  # one cell north-south, 0.5 degree

@@ -46,3 +46,7 @@ Option 1 in each case.
 - Larger portfolios need batching by the client, or an asynchronous job (outside P0). AAL adds
   up over batches; the portfolio PML does not and needs the yearly losses of every batch.
 - No authentication or rate limiting yet: an API gateway would provide them on AWS.
+- Responses are rounded when serialised, never inside computations: degrees to 6 decimals
+  (about 0.1 m), distances to the metre, losses to the whole value unit. Raw values carried
+  float noise (45.49999999999494 for 45.5). The grid step is shown as 0.041667 degree; drawing
+  40 cells with it drifts by about 1.5 m, negligible next to a 4.6 km cell.
