@@ -26,6 +26,7 @@ from climrisk.api.schemas import (
     SiteAnalysis,
     SiteValidation,
     ValidationResponse,
+    VulnerabilityCurve,
 )
 from climrisk.config import Settings
 from climrisk.science.exposure import VALUE_UNIT, portfolio_to_exposures
@@ -41,7 +42,13 @@ from climrisk.science.validation import (
     grid_geometry,
     validate_portfolio,
 )
-from climrisk.science.vulnerability import HAZARD_TYPE, AssetType
+from climrisk.science.vulnerability import (
+    ASSET_TYPE_TO_JRC_SECTOR,
+    HAZARD_TYPE,
+    AssetType,
+    impact_function_id,
+    impact_function_set,
+)
 
 
 class Service(NamedTuple):
@@ -121,6 +128,27 @@ def hazards(request: Request) -> list[HazardInfo]:
             asset_types=list(AssetType),
         )
     ]
+
+
+@router.get("/v1/vulnerability-curves")
+def vulnerability_curves() -> list[VulnerabilityCurve]:
+    """Damage curves used by the impact calculation, one per accepted asset type."""
+    functions = impact_function_set()
+    curves = []
+    for asset_type in AssetType:
+        function = functions.get_func(haz_type=HAZARD_TYPE, fun_id=impact_function_id(asset_type))
+        curves.append(
+            VulnerabilityCurve(
+                asset_type=asset_type,
+                jrc_sector=ASSET_TYPE_TO_JRC_SECTOR[asset_type],
+                function_id=function.id,
+                intensity_unit=function.intensity_unit,
+                depths_m=function.intensity.tolist(),
+                # CLIMADA damage = mean damage degree x share of assets affected.
+                damage_ratios=(function.mdd * function.paa).tolist(),
+            )
+        )
+    return curves
 
 
 @router.post("/v1/validate")

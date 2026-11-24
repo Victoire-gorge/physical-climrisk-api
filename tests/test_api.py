@@ -8,6 +8,7 @@ from scipy import sparse
 
 from climrisk.api.app import DEMO_PORTFOLIO, create_app
 from climrisk.api.schemas import (
+    DESCRIPTION_MAX_LENGTH,
     MAX_SITES,
     LossMetrics,
     MatchedCentroid,
@@ -100,6 +101,20 @@ def test_hazards_describe_the_loaded_hazard(client):
     assert hazard["asset_types"] == [t.value for t in AssetType]
 
 
+def test_vulnerability_curves_are_those_used_by_the_impact(client):
+    curves = {c["asset_type"]: c for c in client.get("/v1/vulnerability-curves").json()}
+    assert list(curves) == [t.value for t in AssetType]
+    industrial = curves["industrial"]
+    assert industrial["intensity_unit"] == "m"
+    # Same JRC points as the impact calculation: 27 % at 1 m, 70 % at 3 m (see test_impact).
+    ratio = dict(zip(industrial["depths_m"], industrial["damage_ratios"], strict=True))
+    assert ratio[1.0] == pytest.approx(0.27)
+    assert ratio[3.0] == pytest.approx(0.70)
+    # Logistics uses the industrial curve (no warehouse curve at JRC).
+    assert curves["logistics"]["damage_ratios"] == industrial["damage_ratios"]
+    assert curves["logistics"]["jrc_sector"] == "industrial"
+
+
 # --- validate --------------------------------------------------------------------------------
 
 
@@ -144,6 +159,21 @@ def test_unknown_asset_type_excludes_the_site_not_the_request(client):
     report = _by_id(response.json()["sites"])
     assert report["castle"]["issues"] == ["unknown_asset_type"]
     assert report["b"]["status"] == "valid"
+
+
+def test_site_description_is_optional_free_text(client):
+    sites = [
+        {**_site("a", ON_FLOODED), "description": "Garonne bank, often flooded"},
+        _site("b", ON_DRY),
+    ]
+    response = client.post("/v1/validate", json={"sites": sites})
+    assert response.status_code == 200
+    assert response.json()["counts"]["valid"] == 2
+
+
+def test_too_long_description_is_rejected(client):
+    site = {**_site("a", ON_DRY), "description": "x" * (DESCRIPTION_MAX_LENGTH + 1)}
+    assert client.post("/v1/validate", json={"sites": [site]}).status_code == 422
 
 
 @pytest.mark.parametrize("n_sites", [0, MAX_SITES + 1])
@@ -254,6 +284,8 @@ def test_demo_portfolio_is_a_valid_request_covering_every_asset_type():
     site_ids = [site.site_id for site in portfolio.sites]
     assert len(site_ids) == len(set(site_ids))
     assert {site.asset_type for site in portfolio.sites} == {t.value for t in AssetType}
+    # Each demo site says what it is there to show.
+    assert all(site.description for site in portfolio.sites)
 
 
 @pytest.mark.parametrize("path", ["/v1/validate", "/v1/analyze"])

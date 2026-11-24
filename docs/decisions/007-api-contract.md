@@ -22,7 +22,8 @@ AWS (container on Fargate, or Lambda).
 ## Decision
 Option 1 in each case.
 - Endpoints: `GET /health` (liveness for a load balancer), `GET /v1/hazards` (zone extent, grid
-  step, simulated years, return periods, asset types), `POST /v1/validate`, `POST /v1/analyze`.
+  step, simulated years, return periods, asset types), `GET /v1/vulnerability-curves` (damage
+  curves used, read from the impact functions), `POST /v1/validate`, `POST /v1/analyze`.
 - `/v1/hazards` returns a list holding one hazard: adding a hazard later adds an element without
   changing the response shape.
 - Startup (`lifespan`) loads the prepared hazard file, checks its type, its grid (006) and its
@@ -45,6 +46,9 @@ Option 1 in each case.
   report identical statuses, issues and matched centroids.
 - Larger portfolios need batching by the client, or an asynchronous job (outside P0). AAL adds
   up over batches; the portfolio PML does not and needs the yearly losses of every batch.
+- A site may carry an optional `description` (free text, at most 200 characters), which the
+  computation ignores and the response does not repeat: clients keep their own labels, and the
+  demo portfolio uses it to say what each site shows.
 - No authentication or rate limiting yet: an API gateway would provide them on AWS.
 - Responses are rounded when serialised, never inside computations: degrees to 6 decimals
   (about 0.1 m), distances to the metre, losses to the whole value unit. Raw values carried

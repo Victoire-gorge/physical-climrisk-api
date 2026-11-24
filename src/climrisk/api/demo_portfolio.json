@@ -1,14 +1,54 @@
 {
   "sites": [
-    {"site_id": "bordeaux_centre_office", "lat": 44.8378, "lon": -0.5792, "value": 2000000, "asset_type": "office"},
-    {"site_id": "merignac_logistics_hub", "lat": 44.8286, "lon": -0.7156, "value": 8000000, "asset_type": "logistics"},
-    {"site_id": "begles_riverside_plant", "lat": 44.8070, "lon": -0.5480, "value": 5000000, "asset_type": "industrial"},
-    {"site_id": "libourne_warehouse", "lat": 44.9153, "lon": -0.2436, "value": 3000000, "asset_type": "logistics"},
-    {"site_id": "langon_plant", "lat": 44.5531, "lon": -0.2494, "value": 4000000, "asset_type": "industrial"},
-    {"site_id": "saint_emilion_estate_buildings", "lat": 44.8930, "lon": -0.1550, "value": 1200000, "asset_type": "industrial"},
-    {"site_id": "saint_emilion_estate_vines", "lat": 44.8930, "lon": -0.1550, "value": 800000, "asset_type": "cropland"},
-    {"site_id": "blaye_office", "lat": 45.1275, "lon": -0.6622, "value": 1000000, "asset_type": "office"},
-    {"site_id": "offshore_platform", "lat": 45.3000, "lon": -1.2900, "value": 10000000, "asset_type": "industrial"},
-    {"site_id": "marseille_office", "lat": 43.2965, "lon": 5.3698, "value": 1000000, "asset_type": "office"}
+    {
+      "site_id": "bordeaux_centre_office",
+      "lat": 44.8378, "lon": -0.5792, "value": 2000000, "asset_type": "office",
+      "description": "City centre office. Its cell is never flooded in the data: a dry reference."
+    },
+    {
+      "site_id": "merignac_logistics_hub",
+      "lat": 44.8286, "lon": -0.7156, "value": 8000000, "asset_type": "logistics",
+      "description": "Logistics hub west of Bordeaux, dry. Logistics uses the industrial damage curve."
+    },
+    {
+      "site_id": "begles_riverside_plant",
+      "lat": 44.8070, "lon": -0.5480, "value": 5000000, "asset_type": "industrial",
+      "description": "Plant on the Garonne bank, flooded in some simulated years."
+    },
+    {
+      "site_id": "libourne_warehouse",
+      "lat": 44.9153, "lon": -0.2436, "value": 3000000, "asset_type": "logistics",
+      "description": "Warehouse at the Isle and Dordogne confluence: the most exposed site."
+    },
+    {
+      "site_id": "langon_plant",
+      "lat": 44.5531, "lon": -0.2494, "value": 4000000, "asset_type": "industrial",
+      "description": "Plant on the upstream Garonne: frequent but shallow floods."
+    },
+    {
+      "site_id": "saint_emilion_estate_buildings",
+      "lat": 44.8930, "lon": -0.1550, "value": 1200000, "asset_type": "industrial",
+      "description": "Wine estate, part 1 of 2: cellars, equipment and wine stock. Hillside, but its cell covers the plain."
+    },
+    {
+      "site_id": "saint_emilion_estate_vines",
+      "lat": 44.8930, "lon": -0.1550, "value": 800000, "asset_type": "cropland",
+      "description": "Wine estate, part 2 of 2: the vines, at the same point, with the crop curve."
+    },
+    {
+      "site_id": "blaye_office",
+      "lat": 45.1275, "lon": -0.6622, "value": 1000000, "asset_type": "office",
+      "description": "Office on the estuary bank: its own cell has no data, a neighbour cell is used."
+    },
+    {
+      "site_id": "offshore_platform",
+      "lat": 45.3000, "lon": -1.2900, "value": 10000000, "asset_type": "industrial",
+      "description": "Offshore, 12.9 km from any cell: excluded, river flood data says nothing at sea."
+    },
+    {
+      "site_id": "marseille_office",
+      "lat": 43.2965, "lon": 5.3698, "value": 1000000, "asset_type": "office",
+      "description": "Outside the zone served by this deployment: excluded."
+    }
   ]
 }

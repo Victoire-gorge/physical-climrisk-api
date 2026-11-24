@@ -32,6 +32,8 @@ Money = Annotated[float, _rounded(VALUE_DECIMALS)]
 # 0.56 s with a 3.5 MB response (1.2 MB request) and a 490 MB process peak. That stays under the
 # 6 MB AWS Lambda limit for a synchronous response, with room for longer site ids.
 MAX_SITES = 10_000
+# A label, not a document: 10,000 sites with full descriptions add at most 2 MB to a request.
+DESCRIPTION_MAX_LENGTH = 200
 
 
 class Site(BaseModel):
@@ -44,6 +46,11 @@ class Site(BaseModel):
     asset_type: str = Field(
         description="One of: " + ", ".join(t.value for t in AssetType) + ". "
         "An unknown type excludes the site instead of rejecting the request.",
+    )
+    description: str | None = Field(
+        default=None,
+        max_length=DESCRIPTION_MAX_LENGTH,
+        description="Optional free text (label, address). Not used in the computation.",
     )
 
 
@@ -136,3 +143,14 @@ class HazardInfo(BaseModel):
     grid: GridStep
     return_periods_years: list[int]
     asset_types: list[AssetType]
+
+
+class VulnerabilityCurve(BaseModel):
+    """Damage ratio as a function of flood depth, for one asset type (JRC Europe)."""
+
+    asset_type: AssetType
+    jrc_sector: str
+    function_id: int
+    intensity_unit: str
+    depths_m: list[float]
+    damage_ratios: list[float] = Field(description="Share of the asset value lost, 0 to 1.")
